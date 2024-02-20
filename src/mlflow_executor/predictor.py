@@ -1,6 +1,6 @@
 from typing import Any, Protocol
 
-from anyforecast import endpoint, serializers
+from mlflow_executor import endpoint, serializers
 
 
 class Serializer(Protocol):

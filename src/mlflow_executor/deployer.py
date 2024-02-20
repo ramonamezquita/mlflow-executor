@@ -1,6 +1,6 @@
 import abc
 
-from anyforecast import endpoint, predictor
+from mlflow_executor import endpoint, predictor
 
 
 class Deployer(abc.ABC):

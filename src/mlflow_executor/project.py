@@ -1,7 +1,7 @@
 import abc
 from typing import Any, Literal, TypedDict
 
-from anyforecast import (
+from mlflow_executor import (
     backends,
     callbacks,
     deployer,

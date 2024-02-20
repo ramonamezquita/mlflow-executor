@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from anyforecast import callback, registry
+from mlflow_executor import callback, registry
 
 
 def gen_task_name(name, module_name) -> str:
@@ -13,8 +13,8 @@ def unpickle_task(name) -> Task:
 
 def create_factory() -> TasksFactory:
 
-    from anyforecast.tasks import mlflow
-    from anyforecast.testing import test_tasks
+    from mlflow_executor.tasks import mlflow
+    from mlflow_executor.testing import test_tasks
 
     factory = TasksFactory()
     factory.include_registry(test_tasks.registry)

@@ -19,57 +19,6 @@ class EnvFile(BaseSettings):
     env_file: str = ".env"
 
 
-class AppInfo(BaseSettings):
-    """Application general information."""
-
-    name: str = "anyforecast"
-    author: str = "ramonamezquita"
-    email: str = "contact@anyforecast.com"
-
-
-class ScriptsSettings(BaseSettings):
-    """Training scripts settings."""
-
-    repo: str = "https://github.com/anyForecast/anyforecast-scripts"
-    package: str = "anyforecast_scripts"
-    version: str = "main"
-
-    model_config = SettingsConfigDict(env_prefix="SCRIPTS_")
-
-    def create_uri(self, name: str) -> str:
-        """Returns script complete uri.
-
-        Parameters
-        ----------
-        name : str
-            Script name.
-        """
-        template = "{repo}#{package}/{name}"
-        return template.format(repo=self.repo, package=self.package, name=name)
-
-
-class TokenSettings(BaseSettings):
-    """JWT token settings.
-
-    Parameters
-    ----------
-    key : str
-        Random secret key that will be used to sign the JWT tokens.
-
-    algorithm : str, default="HS256"
-        Algorithm used to sign the JWT token.
-
-    expires : int, default=30
-        Expiration of the token in minutes.
-    """
-
-    key: str
-    algorithm: str = "HS256"
-    expires: int = 30
-
-    model_config = SettingsConfigDict(env_prefix="TOKEN_")
-
-
 class DBSettings(BaseSettings):
     """Database settings.
 
@@ -127,10 +76,6 @@ class AnyForecastConfigParser:
     def __init__(self) -> None:
         self._env_file = get_dotenv()
 
-    def get_token_settings(self) -> TokenSettings:
-        """Returns token settings."""
-        return TokenSettings(_env_file=self._env_file)
-
     def get_db_settings(self) -> DBSettings:
         """Returns database settings."""
         return DBSettings(_env_file=self._env_file)
@@ -143,9 +88,6 @@ class AnyForecastConfigParser:
 
     def get_mlflow_settings(self) -> MLflowSettings:
         return MLflowSettings(_env_file=self._env_file)
-
-    def get_scripts_settings(self) -> ScriptsSettings:
-        return ScriptsSettings(_env_file=self._env_file)
 
 
 conf: AnyForecastConfigParser = AnyForecastConfigParser()

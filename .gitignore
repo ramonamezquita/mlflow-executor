@@ -6,7 +6,7 @@
 # Dist
 dist/
 build/
-anyforecast_models.egg-info/
+*.egg-info/
 
 # Compiled Python bytecode
 *.py[cod]
@@ -35,7 +35,7 @@ Thumbs.db
 
 # Large media files
 *.mp4
-*.tiff
+*.eff
 *.avi
 *.flv
 *.mov

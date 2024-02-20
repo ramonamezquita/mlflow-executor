@@ -1,9 +1,7 @@
-uvicorn
 celery
-orjson
 kombu
-passlib
 pydantic
+pydantic-settings
 python-dotenv
 httpx
 python-multipart
@@ -13,8 +11,6 @@ psycopg2>=2.9.9
 sqlalchemy>=2.0
 sqlalchemy_utils
 pandas
-pydantic-settings
-click
 ray[default]
 docker
 mlflow
