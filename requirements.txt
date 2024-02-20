@@ -1,0 +1,22 @@
+uvicorn
+celery
+orjson
+kombu
+passlib
+pydantic
+python-dotenv
+httpx
+python-multipart
+bcrypt
+asyncpg
+psycopg2>=2.9.9
+sqlalchemy>=2.0
+sqlalchemy_utils
+pandas
+pydantic-settings
+click
+ray[default]
+docker
+mlflow
+pytest
+anyforecast-datasets @ git+https://github.com/anyForecast/anyforecast-datasets.git
