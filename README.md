@@ -2,7 +2,7 @@ End-to-end training and deployment of MLflow projects.
 
 
 # Example
-Train and deploy [this]("https://github.com/mlflow/mlflow-example") MLflow 
+Train and deploy [this](https://github.com/mlflow/mlflow-example) MLflow 
 example project using the Ray executor.
 
 
