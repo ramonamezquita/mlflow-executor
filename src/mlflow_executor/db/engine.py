@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 
-from anyforecast.settings import conf
+from mlflow_executor.settings import conf
 
 
 def create_db_engine():

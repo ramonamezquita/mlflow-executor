@@ -2,9 +2,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from anyforecast.callback import Callback
-from anyforecast.db.base import sessionfactory
-from anyforecast.db.models import TaskExecution
+from mlflow_executor.callback import Callback
+from mlflow_executor.db.base import sessionfactory
+from mlflow_executor.db.models import TaskExecution
 
 
 class TaskStatus(Enum):

@@ -1,6 +1,6 @@
 from typing import Any
 
-from anyforecast import backend
+from mlflow_executor import backend
 
 
 class TaskPromise:

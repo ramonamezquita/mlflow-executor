@@ -1,93 +1,61 @@
 import unittest
-from typing import Any
 
-from anyforecast_datasets.loaders import load_iris
-from mlflow.projects.submitted_run import SubmittedRun
-
-from anyforecast import backends, project, testing
-
-IRIS_DS = load_iris()
+from mlflow_executor import backends, project
 
 
-def get_run_cmd(run: SubmittedRun) -> str:
-    """Returns the command ran by MLFlow."""
-    return run.command_proc.args[-1].split("&& ")[-1]
+class RunTest:
+
+    def __init__(self, run_summary, expected_cmd) -> None:
+        self.run_summary = run_summary
+        self.expected_cmd = expected_cmd
+
+    def test_all(self):
+        self.test_status()
+        self.test_exit_code()
+        self.test_run_cmd()
+
+    def test_status(self) -> None:
+        assert self.run_summary["status"] == "FINISHED"
+
+    def test_exit_code(self) -> None:
+        assert self.run_summary["exit_code"] == 0
+
+    def test_run_cmd(self) -> None:
+        assert self.run_summary["run_cmd"] == self.expected_cmd
 
 
-def get_exit_code(run: SubmittedRun) -> int:
-    """Returns exit code from MLFlow run."""
-    return run.command_proc.returncode
+class TestMLflowExample(unittest.TestCase):
 
+    #: Project uri.
+    uri = "https://github.com/mlflow/mlflow-example"
 
-class RandomForestProject(project.MLflowProject):
-    """Random Forecast sample project."""
+    #: Project params.
+    params = {"alpha": 0.5, "l1_ratio": 0.01}
 
-    def __init__(self, target: str, max_depth: int = 5):
-        super().__init__(uri=testing.PROJECT_DIR)
+    #: Project env manager.
+    env_manager = "virtualenv"
 
-        self.target = target
-        self.max_depth = max_depth
+    #: Project expected command.
+    expected_cmd = "python train.py 0.5 0.01"
 
-    def get_parameters(self) -> dict[str, Any]:
-        return {"target": self.target, "max_depth": self.max_depth}
+    def run_project(self, backend):
+        return project.run(
+            uri=self.uri,
+            parameters=self.params,
+            env_manager=self.env_manager,
+            backend=backend,
+        )
 
+    def test_local_backend(self) -> None:
+        promise = self.run_project(backends.LocalBackend())
+        result = promise.result()
 
-class BaseTestCases:
-    class TestProject(unittest.TestCase):
+        test = RunTest(result, self.expected_cmd)
+        test.test_all()
 
-        #: Default arguments.
-        backend_exec: backend.BackendExecutor = None
+    def test_ray_backend(self) -> None:
+        promise = self.run_project(backends.RayBackend())
+        result = promise.result()
 
-        @classmethod
-        def setUpClass(cls):
-            if cls.backend_exec is None:
-                raise ValueError("``backend_exec cannot be None.")
-
-            cls.project = RandomForestProject(target=IRIS_DS.target)
-
-            cls.project.run(
-                input_channels={"train": IRIS_DS.filepath},
-                backend=cls.backend_exec,
-            )
-            # cls.estimator.promise_.wait()  # Block until finish.
-
-        def test_is_fitted(self) -> None:
-            assert hasattr(self.project, "promise_")
-
-        def test_exit_code(self) -> None:
-            run = self.project.promise_.result()
-            exit_code = get_exit_code(run)
-            assert exit_code == 0
-
-        def test_run_cmd(self) -> None:
-            parameters = self.project.get_parameters()
-
-            expected_cmd = (
-                f"python main.py "
-                f"--target {parameters['target']} "
-                f"--max_depth {parameters['max_depth']}"
-            )
-
-            run = self.project.promise_.result()
-            command = get_run_cmd(run)
-            assert command == expected_cmd
-
-        def test_is_registered(self) -> None:
-            pass
-
-
-class TestProjectOnLocalBackend(BaseTestCases.TestProject):
-    backend_exec = backends.LocalBackend()
-
-
-# class TestEstimatorOnRayBackend(BaseTestCases.TestEstimator):
-#    backend_exec = backend.RayBackend()
-#
-#    @classmethod
-#    def setUpClass(cls):
-#        ray.init(num_cpus=2, include_dashboard=False)
-#        super().setUpClass()
-#
-#    @classmethod
-#    def tearDownClass(cls):
-#        ray.shutdown()
+        test = RunTest(result, self.expected_cmd)
+        test.test_all()

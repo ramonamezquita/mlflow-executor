@@ -2,15 +2,15 @@ from typing import Literal
 
 from sqlalchemy_utils.functions import create_database, database_exists
 
-from anyforecast.db.base import Base
-from anyforecast.db.engine import create_db_engine
-from anyforecast.exceptions import DatabaseDoesNotExist
-from anyforecast.settings import conf
+from mlflow_executor.db.base import Base
+from mlflow_executor.db.engine import create_db_engine
+from mlflow_executor.exceptions import DatabaseDoesNotExist
+from mlflow_executor.settings import conf
 
 
 def create_db() -> None:
     """Creates AnyForecast database."""
-    from anyforecast.db.models import TaskExecution
+    from mlflow_executor.db.models import TaskExecution
 
     engine = create_db_engine()
     create_database(engine.url)

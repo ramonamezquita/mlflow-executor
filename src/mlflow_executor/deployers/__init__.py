@@ -1,5 +1,5 @@
-from anyforecast.deployers.docker import DockerDeployer
-from anyforecast.deployers.local import LocalDeployer
+from mlflow_executor.deployers.docker import DockerDeployer
+from mlflow_executor.deployers.local import LocalDeployer
 
 
 def get_deployer(name: str, **kwargs):

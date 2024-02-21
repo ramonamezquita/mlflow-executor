@@ -24,11 +24,6 @@ class Promise(abc.ABC):
         """Returns the result of the call that the future represents."""
         pass
 
-    @abc.abstractmethod
-    def done(self) -> bool:
-        """Returns True if the future was cancelled or finished executing."""
-        pass
-
 
 class BackendExecutor(abc.ABC):
     """Base class to inherit for concrete backend executors.

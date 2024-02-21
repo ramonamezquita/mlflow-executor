@@ -1,30 +1,19 @@
-import abc
 from typing import Any, Literal, TypedDict
 
+from mlflow import projects
+
 from mlflow_executor import (
+    backend,
     backends,
-    callbacks,
+    callback,
     deployer,
+    deployers,
     execution,
     predictor,
-    settings,
 )
 
-scripts_settings = settings.conf.get_scripts_settings()
 
-
-def create_script_uri(name: str) -> str:
-    """Returns script complete uri.
-
-    Parameters
-    ----------
-    name : str
-        Script name.
-    """
-    return scripts_settings.create_uri(name)
-
-
-class RunProjectSignature(TypedDict):
+class ProjectKwargs(TypedDict):
     uri: str | None
     entry_point: str
     version: str | None
@@ -37,141 +26,112 @@ class RunProjectSignature(TypedDict):
     environment: dict[str, Any] | None
 
 
-class MLflowProject(abc.ABC):
-    """Handles training and deployment of MLflow projects.
+class SubmittedRun:
+    """Wrapper for mlflow.projects.SubmittedRun.
 
     Parameters
     ----------
-    uri : str
-        MLflow project URI.
-
-    Attributes
-    ----------
-    promise_ : TaskPromise
+    submitted_run : mlflow.projects.SubmittedRun.
     """
 
-    #: Name of the task to be executed.
-    task_name: str = "anyforecast.tasks.mlflow.run_mlflow"
+    def __init__(self, submitted_run: projects.SubmittedRun) -> None:
+        self.submitted_run = submitted_run
 
-    def is_run(self) -> bool:
-        """Returns True if project has been run.
+    @property
+    def model_uri(self) -> str:
+        return f"runs:/{self.get_run_id()}/model"
 
-        Returns
-        -------
-        is_run : bool
+    def is_done(self) -> bool:
+        return self.submitted_run.get_status() == "FINISHED"
+
+    def check_is_done(self) -> None:
+        if not self.is_done():
+            raise ValueError("This run has not completed yet.")
+
+    def get_status(self) -> bool:
+        return self.submitted_run.get_status()
+
+    def deploy(
+        self, deployer: deployer.Deployer = deployers.LocalDeployer()
+    ) -> predictor.Predictor:
+        self.check_is_done()
+
+        return deployer.deploy(self.model_uri)
+
+    def wait(self) -> bool:
+        """Wait for the run to finish, returning True if the run succeeded and
+        false otherwise
         """
-        return hasattr(self, "promise_")
+        return self.submitted_run.wait()
 
-    def check_is_run(self) -> None:
-        """Checks project has been run.
+    def get_run_id(self) -> str:
+        return self.submitted_run.run_id
 
-        Raises
-        ------
-        ValueError if project has not been run.
-        """
-        if not self.is_run():
-            raise ValueError(
-                "This instance is not run yet. Call 'run' with "
-                "appropriate arguments before using it."
-            )
+    def get_run_cmd(self) -> str:
+        """Returns the command ran by MLFlow."""
+        return self.submitted_run.command_proc.args[-1].split("&& ")[-1]
 
-    def run(
-        self,
-        uri: str,
-        parameters: dict[str, Any],
-        input_channels: dict[str, str],
-        callbacks: list[callbacks.Callback] = (),
-        backend: backends.BackendExecutor = backends.LocalBackend(),
-        entry_point: str = "main",
-        experiment_name: str | None = None,
-        experiment_id: str | None = None,
-        storage_dir: str | None = None,
-        run_name: str | None = None,
-        env_manager: Literal["local", "virtualenv", "conda"] | None = None,
-        environment: dict | None = None,
-    ):
-        """Runs project on the configured backend executor.
-
-        Parameters
-        ----------
-        input_channels : dict, str -> str
-            Mapping from input channel name to its filepath.
-            Allowed input channels names are "train", "val" and "test".
-
-        callbacks : list of callbacks.Callback, default=()
-            Which callbacks to enable.
-
-        backend : backend.BackendExecutor, default=LocalExecutor()
-            Backend executor. Default local.
-
-        entry_point : str, default="main"
-            MLflow project entrypoint.
-
-        experiment_name : str, default=None
-            MLflow experiment name.
-
-        experiment_id : str, default=None
-            MLflow experiment id.
-
-        storage_dir : str, default=None
-            MLflow storage dir.
-
-        enviroment : dict
-            Enviroment variables to set for the run.
-
-        Returns
-        -------
-        self : object
-            This estimator.
-        """
-        self.check_input_channels(input_channels)
-
-        environment = environment or {}
-        environment.update(input_channels)
-
-        kwargs = RunProjectSignature(
-            uri=uri,
-            entry_point=entry_point,
-            parameters=parameters,
-            environment=environment,
-            experiment_name=experiment_name,
-            experiment_id=experiment_id,
-            storage_dir=storage_dir,
-            env_manager=env_manager,
-            run_name=run_name,
-        )
-
-        self.promise_ = execution.TasksExecutor(backend).execute(
-            name=self.task_name,
-            kwargs=kwargs,
-            callbacks=callbacks,
-        )
-
-        return self
-
-    def deploy(self, deployer: deployer.Deployer) -> predictor.Predictor:
-        self.check_is_run()
+    def get_exit_code(self) -> int:
+        """Returns exit code from MLFlow run."""
+        return self.submitted_run.command_proc.returncode
 
 
-        self.promise_.result()
+def run(
+    uri: str,
+    parameters: dict[str, Any],
+    callbacks: list[callback.Callback] = (),
+    backend: backend.BackendExecutor = backends.LocalBackend(),
+    entry_point: str = "main",
+    experiment_name: str | None = None,
+    experiment_id: str | None = None,
+    storage_dir: str | None = None,
+    run_name: str | None = None,
+    env_manager: Literal["local", "virtualenv", "conda"] | None = None,
+    environment: dict | None = None,
+) -> SubmittedRun:
+    """Runs MLflow project on the configured backend executor.
 
-        self.promise_.result()
-        return deployer.deploy()
-        pass
+    Parameters
+    ----------
+    callbacks : list of callbacks.Callback, default=()
+        Which callbacks to enable.
 
-    def check_input_channels(self, input_channels: dict[str, str]) -> None:
-        """Checks inpunt channel names/keys.
+    backend : backend.BackendExecutor, default=LocalExecutor()
+        Backend executor. Default local.
 
-        Parameters
-        ----------
-        input_channels : dict, str -> str
-            Input channels allowed keys are "train", "val", "test"
-        """
-        allowed_channels = ["train", "val", "test"]
+    entry_point : str, default="main"
+        MLflow project entrypoint.
 
-        for channel in input_channels:
-            if channel not in allowed_channels:
-                raise ValueError(
-                    f"Input channel name: {channel} is not allowed. "
-                    f"Allowed names: {allowed_channels}."
-                )
+    experiment_name : str, default=None
+        MLflow experiment name.
+
+    experiment_id : str, default=None
+        MLflow experiment id.
+
+    storage_dir : str, default=None
+        MLflow storage dir.
+
+    enviroment : dict
+        Enviroment variables to set for the run.
+    """
+    kwargs = ProjectKwargs(
+        uri=uri,
+        entry_point=entry_point,
+        parameters=parameters,
+        environment=environment,
+        experiment_name=experiment_name,
+        experiment_id=experiment_id,
+        storage_dir=storage_dir,
+        env_manager=env_manager,
+        run_name=run_name,
+    )
+
+    executor = execution.TasksExecutor()
+    promise = executor.execute(
+        name="mlflow_executor.tasks.mlflow.run_mlflow",
+        kwargs=kwargs,
+        callbacks=callbacks,
+        backend=backend,
+    )
+
+    return promise

@@ -1,15 +1,14 @@
 import abc
 
-from mlflow_executor import endpoint, predictor
+from mlflow_executor import predictor
 
 
 class Deployer(abc.ABC):
 
     def deploy(self, model_uri: str) -> predictor.Predictor:
-        url = self.run_server(model_uri)
+        host = self.run_server(model_uri)
 
-        endpoint.Endpoint(url, endpoint_prefix=model_uri)
-        return predictor.Predictor(endpoint)
+        return predictor.Predictor(host)
 
     @abc.abstractmethod
     def run_server(self, model_uri: str) -> str:

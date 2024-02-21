@@ -2,7 +2,7 @@ from unittest import TestCase, mock
 
 import requests
 
-from anyforecast.predictor import Predictor
+from mlflow_executor.predictor import Predictor
 
 ENDPOINT = "dummy_endpoint"
 RETURN_JSON = {}
@@ -22,5 +22,5 @@ class PredictorTest(TestCase):
 
     def test_predict_call(self):
         mock_session = self.MockSession()
-        predictor = Predictor(ENDPOINT, session=mock_session)
+        predictor = Predictor(ENDPOINT)
         pass

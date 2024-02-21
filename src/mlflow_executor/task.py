@@ -14,10 +14,8 @@ def unpickle_task(name) -> Task:
 def create_factory() -> TasksFactory:
 
     from mlflow_executor.tasks import mlflow
-    from mlflow_executor.testing import test_tasks
 
     factory = TasksFactory()
-    factory.include_registry(test_tasks.registry)
     factory.include_registry(mlflow.registry)
 
     return factory

@@ -3,7 +3,7 @@ from typing import Literal
 import docker
 import mlflow
 
-from anyforecast import deployer
+from mlflow_executor import deployer
 
 
 def build_mlflow_image(
@@ -15,9 +15,6 @@ def build_mlflow_image(
     enable_mlserver: bool = False,
 ) -> None:
     """Builds a Docker image whose default entrypoint serves an MLflow model.
-
-    Parameters
-    ----------
     """
     mlflow.models.build_docker(
         model_uri=model_uri,

@@ -1,7 +1,7 @@
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any
 
-from anyforecast import backend
+from mlflow_executor import backend
 
 
 def _run(
@@ -18,14 +18,11 @@ def _run(
 
 
 class LocalPromise(backend.Promise):
-    def __init__(self, python_future: Future) -> None:
-        self.python_future = python_future
+    def __init__(self, future: Future) -> None:
+        self.future = future
 
     def result(self) -> Any:
-        return self.python_future.result()
-
-    def done(self) -> bool:
-        return self.python_future.done()
+        return self.future.result()
 
 
 class LocalBackend(backend.BackendExecutor):
@@ -39,5 +36,5 @@ class LocalBackend(backend.BackendExecutor):
         self.max_workers = max_workers
 
     def run(self, runner: backend.Runner) -> LocalPromise:
-        python_future = _run(fn=runner.run, max_workers=self.max_workers)
-        return LocalPromise(python_future)
+        future = _run(fn=runner.run, max_workers=self.max_workers)
+        return LocalPromise(future)

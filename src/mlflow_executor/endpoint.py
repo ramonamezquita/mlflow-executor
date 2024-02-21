@@ -1,26 +1,24 @@
-from requests import Response, Session
+import requests
 
 
-class Endpoint:
-    """Represents an endpoint for a particular service. Only an endpoint can
-    make requests.
-    """
-
-    def __init__(
-        self,
-        url: str,
-        endpoint_prefix: str,
-        session: Session | None =None,
-    ):
+class PostEndpoint:
+    def __init__(self, url: str, session: requests.Session | None = None):
         self.url = url
-        self.endpoint_prefix = endpoint_prefix
-        self.session = session or Session()
+        self.session = session or requests.Session()
 
-    def make_request(self, json=None, data=None, headers=None) -> Response:
-        response = self.session.post(
-            self.url, json=json, data=data, headers=headers
+    def post(self, json=None, data=None, headers=None) -> requests.Response:
+        return self.session.post(
+            self.url,
+            json=json,
+            data=data,
+            headers=headers,
         )
-        return response
 
-    def __repr__(self):
-        return "%s(%s)" % (self.endpoint_prefix, self.url)
+
+class GetEndpoint:
+    def __init__(self, url: str, session: requests.Session | None = None):
+        self.url = url
+        self.session = session or requests.Session()
+
+    def get(self) -> requests.Response:
+        return self.session.get(self.url)

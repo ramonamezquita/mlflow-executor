@@ -3,7 +3,7 @@ from typing import Literal
 
 from mlflow.models.flavor_backend_registry import get_flavor_backend
 
-from anyforecast import deployer
+from mlflow_executor import deployer
 
 
 def run_mlflow_server(
@@ -54,4 +54,4 @@ class LocalDeployer(deployer.Deployer):
         thread = threading.Thread(target=run_mlflow_server, kwargs=kwargs)
         thread.start()
 
-        return ""
+        return f"http://{self.host}:{self.port}"

@@ -1,6 +1,6 @@
 from typing import Any
 
-from anyforecast import task
+from mlflow_executor import task
 
 
 class TaskRunner:

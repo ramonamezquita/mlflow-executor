@@ -1,8 +1,8 @@
 from kombu.utils.uuid import uuid
 
-from anyforecast import backend, backends, callback, task
-from anyforecast.execution.promise import TaskPromise
-from anyforecast.execution.runner import TaskRunner
+from mlflow_executor import backend, backends, callback, task
+from mlflow_executor.execution.promise import TaskPromise
+from mlflow_executor.execution.runner import TaskRunner
 
 
 class TasksExecutor:

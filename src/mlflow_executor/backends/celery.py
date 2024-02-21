@@ -3,7 +3,7 @@ from __future__ import annotations
 from celery import Celery
 from celery.result import AsyncResult as CeleryAsyncResult
 
-from anyforecast import backend, settings
+from mlflow_executor import backend, settings
 
 celery_settings = settings.conf.get_celery_settings()
 celery_app_name = getattr(celery_settings, "celery", "celery-executor")

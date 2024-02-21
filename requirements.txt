@@ -3,16 +3,14 @@ kombu
 pydantic
 pydantic-settings
 python-dotenv
-httpx
 python-multipart
-bcrypt
-asyncpg
-psycopg2>=2.9.9
-sqlalchemy>=2.0
+psycopg2
+sqlalchemy
 sqlalchemy_utils
 pandas
 ray[default]
 docker
 mlflow
 pytest
+virtualenv
 anyforecast-datasets @ git+https://github.com/anyForecast/anyforecast-datasets.git

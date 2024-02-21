@@ -1,4 +1,6 @@
+from functools import cached_property
 from typing import Any, Protocol
+from urllib.parse import urljoin
 
 from mlflow_executor import endpoint, serializers
 
@@ -12,11 +14,21 @@ class Predictor:
 
     def __init__(
         self,
-        endpoint: endpoint.Endpoint,
+        host: str,
         serializer: Serializer = serializers.IdentitySerializer(),
     ):
-        self.endpoint = endpoint
+        self.host = host
         self.serializer = serializer
+
+    @cached_property
+    def predict_endpoint(self) -> endpoint.PostEndpoint:
+        url = urljoin(self.host, "invocations")
+        return endpoint.PostEndpoint(url)
+
+    @cached_property
+    def health_endpoint(self) -> endpoint.GetEndpoint:
+        url = urljoin(self.host, "health")
+        return endpoint.GetEndpoint(url)
 
     def predict(self, data: Any):
         """Returns the inference from the specified endpoint.
@@ -31,7 +43,11 @@ class Predictor:
             data in the request body as is.
         """
         data = self.serializer.serialize(data)
-        response = self.endpoint.make_request(json=data)
+        response = self.predict_endpoint.post(json=data)
         response.raise_for_status()
 
         return response.json()
+
+    def health(self) -> None:
+        response = self.health_endpoint.get()
+        response.raise_for_status()

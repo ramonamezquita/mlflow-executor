@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from anyforecast import project
+from mlflow_executor import project
 
 
 class Seq2SeqParameters(TypedDict):
