@@ -10,7 +10,7 @@ example project using the Ray executor.
 
 from mlflow_executor import project, backends, deployers
 
-#Project uri.
+# Project uri.
 uri = "https://github.com/mlflow/mlflow-example"
 
 # Project params.
@@ -36,8 +36,8 @@ promise = project.run(
 result = promise.result()
 
 
-# Choose your preferred deployer (e.g., :class:`deployer.LocalDeployer`).
-# All deployers return a :class:`predictor.Predictor` instance that handles
+# Choose your preferred deployer (e.g., :class:`LocalDeployer`).
+# All deployers return a :class:`Predictor` instance that handles
 # POST requests to the model inference service.
 deployer = deployers.LocalDeployer()
 predictor = deployer.deploy(result['model_uri'])
